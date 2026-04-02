@@ -11,6 +11,7 @@ import PreferenceSummary from "../components/planner/PreferenceSummary";
 import OutingResults from "../components/planner/OutingResults";
 import LivePoll from "../components/planner/LivePoll";
 import TransportOptions from "../components/planner/TransportOptions";
+import PackingChecklist from "../components/planner/PackingChecklist";
 import {
   OUTING_PLACES,
   aggregatePreferences,
@@ -26,10 +27,11 @@ export default function Home() {
   const [showResults, setShowResults] = useState(false);
   const [votes, setVotes] = useState({});
 
-  const isReady =
-    location.city &&
-    date &&
-    users.every(u => u.activity && u.food && u.gender);
+  const missing = [];
+  if (!location.city) missing.push("Select a city");
+  if (!date) missing.push("Pick a date");
+  if (!users.every(u => u.activity && u.food && u.gender)) missing.push("Fill all team member fields");
+  const isReady = missing.length === 0;
 
   const { prefs, rankedPlans } = useMemo(() => {
     if (!showResults) return { prefs: null, rankedPlans: [] };
@@ -76,6 +78,15 @@ export default function Home() {
               <Zap className="w-5 h-5" />
               Generate AI Recommendations
             </Button>
+            {missing.length > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {missing.map(m => (
+                  <span key={m} className="text-xs px-3 py-1 rounded-full bg-white/20 text-white/80">
+                    ⚠️ {m}
+                  </span>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Results */}
@@ -95,6 +106,7 @@ export default function Home() {
               {rankedPlans.length >= 3 && (
                 <LivePoll plans={rankedPlans} />
               )}
+              <PackingChecklist activityType={prefs?.mostCommonActivity} />
             </motion.div>
           )}
         </div>
